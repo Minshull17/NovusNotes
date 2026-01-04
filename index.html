@@ -1398,7 +1398,7 @@
                 // Second line: rental demand and suitability
                 if (rentalDemand || suitability) {
                     if (rentalDemand && suitability) {
-                        if (rentalDemand === suitability) {
+                        if (rentalDemand.toLowerCase() === suitability.toLowerCase()) {
                             // Same value - show once
                             output += capitalizeEmDashLine(`- ${rentalDemand} rental demand and suitability\n`);
                         } else {
