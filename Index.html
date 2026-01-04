@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mortgage Underwriting Notes Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+            overflow: hidden;
+        }
+
+        .header {
+            background: #28a745;
+            color: white;
+            padding: 20px 30px;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        .content {
+            padding: 20px 30px;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .quick-btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+
+        .quick-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .quick-btn.active {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .customer-status-btn.active {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-section.compact {
+            padding: 15px;
+        }
+
+        .form-section.compact h3 {
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        #applicationDataSection {
+            display: none;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.85em;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #28a745;
+        }
+
+        .form-group input[readonly] {
+            background: #e9ecef;
+            cursor: not-allowed;
+        }
+
+        .form-group textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .preview-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .character-counter {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 0.75em;
+            color: #666;
+            font-weight: normal;
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .preview-area {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            flex: 1;
+            min-height: 300px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            line-height: 1.8;
+            font-size: 13px;
+            color: #333;
+            overflow-y: auto;
+            resize: vertical;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .preview-area:focus {
+            outline: none;
+            border-color: #28a745;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+            flex: 1;
+            justify-content: center;
+            font-size: 15px;
+            padding: 14px;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .note-item {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            border: 2px solid #e0e0e0;
+            margin-bottom: 8px;
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .note-item input {
+            flex: 1;
+            border: none;
+            padding: 6px;
+            font-size: 13px;
+        }
+
+        .note-item input:focus {
+            outline: none;
+        }
+
+        .remove-note-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .remove-note-btn:hover {
+            background: #c82333;
+        }
+
+        .add-note-btn {
+            background: #28a745;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+            margin-top: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .add-note-btn:hover {
+            background: #218838;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .save-app-btn {
+            background: #ffc107;
+            color: #333;
+            padding: 4px 8px;
+            font-size: 11px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .save-app-btn:hover {
+            background: #e0a800;
+        }
+
+        .keyboard-hint {
+            font-size: 0.75em;
+            color: #666;
+            font-weight: normal;
+            margin-left: 10px;
+        }
+
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Mortgage Notes Generator</h1>
+            <p>Quick note generation for OutSystems workflow - Enter app details once, generate multiple note types</p>
+        </div>
+        
+        <div class="content">
+            <!-- Quick Action Buttons -->
+            <div class="quick-actions">
+                <button class="quick-btn active" onclick="selectNoteType('firstReview')">First Review</button>
+                <button class="quick-btn" onclick="selectNoteType('propertySchedule')">Property Schedule</button>
+                <button class="quick-btn" onclick="selectNoteType('income')">Income Docs</button>
+                <button class="quick-btn" onclick="selectNoteType('bankStatements')">Bank Statements</button>
+                <button class="quick-btn" onclick="selectNoteType('accounts')">Accounts</button>
+                <button class="quick-btn" onclick="selectNoteType('credit')">Credit</button>
+                <button class="quick-btn" onclick="selectNoteType('property')">Valuation</button>
+            </div>
+
+            <div class="main-grid">
+                <!-- Left Panel: Inputs -->
+                <div class="left-panel">
+                    <!-- Master Data Section -->
+                    <div class="form-section compact" id="applicationDataSection">
+                        <h3>
+                            Application Data
+                            <button class="save-app-btn" onclick="saveApplicationData()" title="Save for quick reload">💾 Save</button>
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Loan Amount</label>
+                                <input type="text" id="loanAmount" placeholder="£250,000" oninput="calculateLTV(); saveToLocalStorage(); updatePreview();">
+                            </div>
+                            <div class="form-group">
+                                <label>Property Value</label>
+                                <input type="text" id="propertyValue" placeholder="£300,000" oninput="calculateLTV(); saveToLocalStorage(); updatePreview();">
+                            </div>
+                            <div class="form-group">
+                                <label>LTV (Auto)</label>
+                                <input type="text" id="calculatedLTV" placeholder="Auto" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Position</label>
+                                <input type="text" id="position" placeholder="Job title" oninput="saveToLocalStorage(); updatePreview();">
+                            </div>
+                            <div class="form-group">
+                                <label>Employment Length</label>
+                                <input type="text" id="employmentLength" placeholder="3 years" oninput="saveToLocalStorage(); updatePreview();">
+                            </div>
+                            <div class="form-group">
+                                <label>Credit Score</label>
+                                <input type="text" id="creditScore" placeholder="750" oninput="saveToLocalStorage(); updatePreview();">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Template Specific Fields -->
+                    <div class="form-section compact" id="dynamicFields">
+                        <!-- Will be populated by template -->
+                    </div>
+
+                    <!-- Assessment Notes -->
+                    <div class="form-section compact">
+                        <h3>Assessment Notes</h3>
+                        <div id="notesContainer">
+                            <!-- Notes will be added here -->
+                        </div>
+                        <button class="add-note-btn" onclick="addNote()">+ Add Note</button>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Preview & Actions -->
+                <div class="right-panel">
+                    <div class="preview-section">
+                        <h3>
+                            <span>Generated Notes <span class="keyboard-hint">(Ctrl+C to copy)</span></span>
+                            <button class="btn btn-success btn-sm" onclick="copyToClipboard()" style="padding: 8px 16px; font-size: 13px;">
+                                📋 Copy
+                            </button>
+                        </h3>
+                        <div style="position: relative;">
+                            <div class="character-counter" id="characterCounter">0 characters</div>
+                            <textarea class="preview-area" id="previewArea" oninput="updateCharacterCounter()">First review:
+
+- [Your notes will appear here]</textarea>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <button class="btn btn-secondary btn-sm" onclick="clearNotes()">Clear Notes Only</button>
+                            <button class="btn btn-secondary btn-sm" onclick="clearAll()">Clear All</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        Copied to clipboard!
+    </div>
+
+    <script>
+        let notes = [];
+        let currentTemplate = 'firstReview';
+        let showMaxLTV = false;
+        let showMaxICR = false;
+        let customerStatus = ''; // 'new' or 'existing'
+        let showValBooked = false;
+        let showValInstructed = false;
+        // Store template field values to preserve when switching tabs
+        let templateData = {};
+
+        // Template configurations - these reference common fields from master data
+        const templates = {
+            firstReview: {
+                name: 'First review',
+                title: 'First review',
+                fields: [
+                    { id: 'cg', label: 'CG', placeholder: 'CG value' },
+                    { id: 'delphi', label: 'Delphi', placeholder: 'Delphi value' },
+                    { id: 'cashflow', label: 'Cashflow', placeholder: 'Cashflow value' },
+                    { id: 'transaction', label: 'Transaction', type: 'select', options: ['', 'Limited company re-mortgage', 'Limited company purchase', 'Re-mortgage', 'Purchase'] },
+                    { id: 'property', label: 'Property', type: 'select', options: ['', 'SSCU', 'HMO', 'MUB'] },
+                    { id: 'location', label: 'Location', placeholder: 'Location' },
+                    { id: 'firstReviewLoanAmount', label: 'Loan Amount', placeholder: '£250,000' },
+                    { id: 'firstReviewPropertyValue', label: 'Property Value', placeholder: '£300,000' },
+                    { id: 'firstReviewLTV', label: 'LTV (Auto)', placeholder: 'Auto', type: 'readonly' },
+                    { id: 'creditProfile', label: 'Profile', type: 'select', options: ['', 'Good', 'Acceptable', 'Poor'] },
+                    { id: 'rnScore', label: 'RN Score', type: 'select', options: ['', 'excellent', 'good', 'average', 'poor'] },
+                    { id: 'customerSince', label: 'Customer Since', placeholder: 'e.g., 2020', type: 'conditional' },
+                    { id: 'liveAccounts', label: 'Live Accounts', placeholder: 'e.g., 2', type: 'conditional' }
+                ],
+                useCommonFields: []
+            },
+            propertySchedule: {
+                name: 'Property Schedule',
+                title: 'Property schedule',
+                fields: [
+                    { id: 'experience', label: 'Experience', type: 'select', options: ['', 'Experienced', 'Moderately experienced', 'inexperienced'] },
+                    { id: 'numberOfProperties', label: 'Number of Properties', placeholder: 'e.g., 5' },
+                    { id: 'propertyLocation', label: 'Location', placeholder: 'Location' }
+                ],
+                useCommonFields: []
+            },
+            income: {
+                name: 'Income',
+                title: 'Income documents received',
+                fields: [
+                    { id: 'documents', label: 'Documents', placeholder: 'Payslips, P60, etc.' },
+                    { id: 'incomeNotes', label: 'Additional Notes', placeholder: 'Any specific observations' }
+                ],
+                useCommonFields: ['position', 'employmentLength']
+            },
+            bankStatements: {
+                name: 'Bank Statements',
+                title: 'Bank statements',
+                fields: [
+                    { id: 'statementType', label: 'Statement Type', type: 'select', options: ['', 'subject company', 'personal name'] },
+                    { id: 'bankName', label: 'Bank', placeholder: 'Bank name' },
+                    { id: 'accountType', label: 'Account Type', placeholder: 'Current/Savings' },
+                    { id: 'statementPeriod', label: 'Period', placeholder: 'Jan-Mar 2024' },
+                    { id: 'averageBalance', label: 'Average Balance', placeholder: '£5,000' },
+                    { id: 'notableTransactions', label: 'Notable Transactions', placeholder: 'None/Details' }
+                ],
+                useCommonFields: []
+            },
+            accounts: {
+                name: 'Accounts',
+                title: 'Accounts received',
+                fields: [
+                    { id: 'accountant', label: 'Accountant', placeholder: 'Firm name' },
+                    { id: 'yearEnd', label: 'Year End', placeholder: '31/12/2023' },
+                    { id: 'netProfit', label: 'Net Profit', placeholder: '£50,000' },
+                    { id: 'turnover', label: 'Turnover', placeholder: '£200,000' },
+                    { id: 'documents', label: 'Documents', placeholder: 'Full accounts, SA302' }
+                ],
+                useCommonFields: []
+            },
+            credit: {
+                name: 'Credit',
+                title: 'Credit check completed',
+                fields: [
+                    { id: 'defaults', label: 'Defaults', placeholder: 'None' },
+                    { id: 'totalDebt', label: 'Total Debt', placeholder: '£15,000' },
+                    { id: 'monthlyCommitments', label: 'Monthly Commitments', placeholder: '£500' }
+                ],
+                useCommonFields: ['creditScore']
+            },
+            property: {
+                name: 'Valuation',
+                title: 'Valuation assessment',
+                fields: [
+                    { id: 'valuation', label: 'Valuation', placeholder: '£295,000', type: 'text' },
+                    { id: 'rentalIncome', label: 'Rental Income', placeholder: '£1,200 pcm', type: 'text' },
+                    { id: 'rentalDemand', label: 'Rental Demand', type: 'select', options: ['', 'Good', 'Average', 'Poor'] },
+                    { id: 'suitability', label: 'Suitability', type: 'select', options: ['', 'Good', 'Average', 'Poor'] }
+                ],
+                useCommonFields: []
+            }
+        };
+
+        // Initialize
+        function init() {
+            loadApplicationData();
+            selectNoteType('firstReview');
+            addNote();
+            updatePreview();
+            
+            // Keyboard shortcut for copy
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'c' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                    copyToClipboard();
+                }
+            });
+            
+            // Update character counter when user edits preview area manually
+            setupPreviewAreaListener();
+        }
+
+        // Setup preview area event listener
+        function setupPreviewAreaListener() {
+            const previewArea = document.getElementById('previewArea');
+            if (previewArea) {
+                // Remove existing listener if any, then add new one
+                previewArea.removeEventListener('input', updateCharacterCounter);
+                previewArea.addEventListener('input', updateCharacterCounter);
+            }
+        }
+
+        // Save current template data before switching
+        function saveCurrentTemplateData() {
+            if (!currentTemplate) return;
+            
+            const template = templates[currentTemplate];
+            const data = {
+                fields: {},
+                notes: [...notes],
+                customerStatus: customerStatus,
+                showValBooked: showValBooked,
+                showValInstructed: showValInstructed,
+                showMaxLTV: showMaxLTV,
+                showMaxICR: showMaxICR
+            };
+            
+            // Save all template fields
+            template.fields.forEach(field => {
+                const element = document.getElementById(field.id);
+                if (element) {
+                    data.fields[field.id] = element.value;
+                }
+            });
+            
+            // Save common fields if used
+            if (template.useCommonFields && template.useCommonFields.length > 0) {
+                template.useCommonFields.forEach(fieldId => {
+                    const element = document.getElementById(fieldId);
+                    if (element) {
+                        data.fields[fieldId] = element.value;
+                    }
+                });
+            }
+            
+            // Save assessment notes
+            const notesContainer = document.getElementById('notesContainer');
+            if (notesContainer) {
+                const noteInputs = notesContainer.querySelectorAll('input[type="text"]');
+                data.noteValues = Array.from(noteInputs).map(input => input.value);
+            }
+            
+            templateData[currentTemplate] = data;
+        }
+
+        // Restore template data when loading
+        function restoreTemplateData() {
+            if (!currentTemplate || !templateData[currentTemplate]) return;
+            
+            const data = templateData[currentTemplate];
+            const template = templates[currentTemplate];
+            
+            // Restore template fields
+            template.fields.forEach(field => {
+                const element = document.getElementById(field.id);
+                if (element && data.fields[field.id] !== undefined) {
+                    element.value = data.fields[field.id];
+                }
+            });
+            
+            // Restore common fields
+            if (template.useCommonFields && template.useCommonFields.length > 0) {
+                template.useCommonFields.forEach(fieldId => {
+                    const element = document.getElementById(fieldId);
+                    if (element && data.fields[fieldId] !== undefined) {
+                        element.value = data.fields[fieldId];
+                    }
+                });
+            }
+            
+            // Restore state variables
+            if (data.customerStatus !== undefined) customerStatus = data.customerStatus;
+            if (data.showValBooked !== undefined) showValBooked = data.showValBooked;
+            if (data.showValInstructed !== undefined) showValInstructed = data.showValInstructed;
+            if (data.showMaxLTV !== undefined) showMaxLTV = data.showMaxLTV;
+            if (data.showMaxICR !== undefined) showMaxICR = data.showMaxICR;
+            
+            // Restore assessment notes
+            if (data.noteValues && data.noteValues.length > 0) {
+                notes = [];
+                const notesContainer = document.getElementById('notesContainer');
+                if (notesContainer) {
+                    notesContainer.innerHTML = '';
+                    data.noteValues.forEach((noteValue, index) => {
+                        if (noteValue) {
+                            const noteId = 'note_' + Date.now() + '_' + index;
+                            const div = document.createElement('div');
+                            div.className = 'note-item';
+                            div.id = noteId;
+                            div.innerHTML = `
+                                <input type="text" placeholder="Enter note..." oninput="updatePreview()" id="input_${noteId}" value="${noteValue.replace(/"/g, '&quot;')}">
+                                <button class="remove-note-btn" onclick="removeNote('${noteId}')">×</button>
+                            `;
+                            notesContainer.appendChild(div);
+                            notes.push(noteId);
+                        }
+                    });
+                }
+            } else if (data.notes && data.notes.length > 0) {
+                notes = data.notes;
+            }
+        }
+
+        // Select note type
+        function selectNoteType(type, event) {
+            // Save current template data before switching
+            saveCurrentTemplateData();
+            
+            currentTemplate = type;
+            
+            // Update button states
+            document.querySelectorAll('.quick-btn').forEach(btn => {
+                btn.classList.remove('active');
+                // Check if this button's onclick matches the type
+                if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${type}'`)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            loadTemplate();
+        }
+
+        // Load template
+        function loadTemplate() {
+            const template = templates[currentTemplate];
+            
+            // Reset Max LTV and Max ICR flags when switching templates (only if no saved data)
+            const hasSavedData = templateData[currentTemplate];
+            if (!hasSavedData) {
+                showMaxLTV = false;
+                showMaxICR = false;
+                customerStatus = '';
+                showValBooked = false;
+                showValInstructed = false;
+            }
+            
+            // Hide Application Data section for Valuation, First Review, and Property Schedule tabs
+            const applicationDataSection = document.getElementById('applicationDataSection');
+            if (currentTemplate === 'property' || currentTemplate === 'firstReview' || currentTemplate === 'propertySchedule') {
+                applicationDataSection.style.display = 'none';
+            } else {
+                applicationDataSection.style.display = 'block';
+            }
+            
+            const dynamicFields = document.getElementById('dynamicFields');
+            dynamicFields.innerHTML = `<h3>${template.name} Details</h3><div class="form-grid" id="templateFields"></div>`;
+            
+            const fieldsContainer = document.getElementById('templateFields');
+            template.fields.forEach(field => {
+                const div = document.createElement('div');
+                div.className = 'form-group';
+                
+                let inputHTML = '';
+                const fieldType = field.type || 'text';
+                if (fieldType === 'select' && field.options) {
+                    // Create select dropdown
+                    inputHTML = `<select id="${field.id}" onchange="updatePreview()">`;
+                    field.options.forEach((option, index) => {
+                        const displayText = option || (index === 0 ? 'Select...' : '');
+                        inputHTML += `<option value="${option}">${displayText}</option>`;
+                    });
+                    inputHTML += `</select>`;
+                } else if (fieldType === 'readonly') {
+                    // Create readonly input
+                    const placeholder = field.placeholder || '';
+                    inputHTML = `<input type="text" id="${field.id}" placeholder="${placeholder}" readonly style="background: #e9ecef; cursor: not-allowed;">`;
+                } else if (fieldType === 'conditional') {
+                    // Skip conditional fields in main loop - will be handled separately
+                    return;
+                } else {
+                    // Create text input
+                    const placeholder = field.placeholder || '';
+                    let oninputHandler = 'updatePreview()';
+                    // Add LTV calculation for firstReview loan amount and property value
+                    if (field.id === 'firstReviewLoanAmount' || field.id === 'firstReviewPropertyValue') {
+                        oninputHandler = 'calculateFirstReviewLTV(); updatePreview();';
+                    }
+                    inputHTML = `<input type="text" id="${field.id}" placeholder="${placeholder}" oninput="${oninputHandler}">`;
+                }
+                
+                div.innerHTML = `
+                    <label>${field.label}</label>
+                    ${inputHTML}
+                `;
+                fieldsContainer.appendChild(div);
+            });
+            
+            // Add customer status buttons and fields for First Review template
+            if (currentTemplate === 'firstReview') {
+                // Customer status buttons
+                const customerStatusDiv = document.createElement('div');
+                customerStatusDiv.className = 'form-group';
+                customerStatusDiv.style.gridColumn = '1 / -1';
+                customerStatusDiv.innerHTML = `
+                    <label>Customer Status</label>
+                    <div style="display: flex; gap: 10px; margin-top: 5px;">
+                        <button class="btn btn-secondary btn-sm customer-status-btn" id="customerStatusNew" onclick="setCustomerStatus('new')" style="flex: 1;">New</button>
+                        <button class="btn btn-secondary btn-sm customer-status-btn" id="customerStatusExisting" onclick="setCustomerStatus('existing')" style="flex: 1;">Existing</button>
+                    </div>
+                `;
+                fieldsContainer.appendChild(customerStatusDiv);
+                
+                // Conditional fields for existing customers
+                const customerSinceDiv = document.createElement('div');
+                customerSinceDiv.className = 'form-group';
+                customerSinceDiv.id = 'customerSinceContainer';
+                customerSinceDiv.style.display = 'none';
+                customerSinceDiv.innerHTML = `
+                    <label>Customer Since</label>
+                    <input type="text" id="customerSince" placeholder="e.g., 2020" oninput="updatePreview()">
+                `;
+                fieldsContainer.appendChild(customerSinceDiv);
+                
+                const liveAccountsDiv = document.createElement('div');
+                liveAccountsDiv.className = 'form-group';
+                liveAccountsDiv.id = 'liveAccountsContainer';
+                liveAccountsDiv.style.display = 'none';
+                liveAccountsDiv.innerHTML = `
+                    <label>Live Accounts</label>
+                    <input type="text" id="liveAccounts" placeholder="e.g., 2" oninput="updatePreview()">
+                `;
+                fieldsContainer.appendChild(liveAccountsDiv);
+                
+                // Update button states based on current status
+                updateCustomerStatusButtons();
+                
+                // Valuation buttons
+                const valButtonsDiv = document.createElement('div');
+                valButtonsDiv.className = 'form-group';
+                valButtonsDiv.style.gridColumn = '1 / -1';
+                valButtonsDiv.style.marginTop = '10px';
+                valButtonsDiv.innerHTML = `
+                    <button class="btn btn-secondary btn-sm" id="valBookedBtn" onclick="setValBooked()" style="margin-right: 10px;">Val booked</button>
+                    <button class="btn btn-secondary btn-sm" id="valInstructedBtn" onclick="setValInstructed()">Val instructed</button>
+                `;
+                fieldsContainer.appendChild(valButtonsDiv);
+                
+                // Date input for Val booked (conditional)
+                const valDateDiv = document.createElement('div');
+                valDateDiv.className = 'form-group';
+                valDateDiv.id = 'valDateContainer';
+                valDateDiv.style.display = 'none';
+                valDateDiv.innerHTML = `
+                    <label>Valuation Date</label>
+                    <input type="text" id="valDate" placeholder="e.g., 15/01/2024" oninput="updatePreview()">
+                `;
+                fieldsContainer.appendChild(valDateDiv);
+                
+                // Update button states
+                updateValButtons();
+            }
+            
+            // Add Max LTV and Max ICR buttons for Valuation template
+            if (currentTemplate === 'property') {
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.className = 'form-group';
+                buttonsDiv.style.gridColumn = '1 / -1';
+                buttonsDiv.style.marginTop = '10px';
+                buttonsDiv.innerHTML = `
+                    <button class="btn btn-secondary btn-sm" onclick="addMaxLTV()" style="margin-right: 10px;">Max LTV</button>
+                    <button class="btn btn-secondary btn-sm" onclick="addMaxICR()">Max ICR</button>
+                `;
+                fieldsContainer.appendChild(buttonsDiv);
+            }
+            
+            // Clear notes container if no saved data
+            if (!templateData[currentTemplate]) {
+                const notesContainer = document.getElementById('notesContainer');
+                if (notesContainer) {
+                    notesContainer.innerHTML = '';
+                    notes = [];
+                }
+            }
+            
+            // Restore saved template data
+            restoreTemplateData();
+            
+            // Update button states and conditional fields after restoring data
+            if (currentTemplate === 'firstReview') {
+                updateCustomerStatusButtons();
+                updateValButtons();
+                // Recalculate LTV if values were restored
+                calculateFirstReviewLTV();
+            } else if (currentTemplate === 'property') {
+                // Update Max LTV/ICR button states if needed
+                const maxLTVBtn = document.querySelector('button[onclick="addMaxLTV()"]');
+                const maxICRBtn = document.querySelector('button[onclick="addMaxICR()"]');
+                if (maxLTVBtn && showMaxLTV) maxLTVBtn.classList.add('active');
+                if (maxICRBtn && showMaxICR) maxICRBtn.classList.add('active');
+            }
+            
+            updatePreview();
+        }
+
+        // Add note
+        function addNote() {
+            const container = document.getElementById('notesContainer');
+            const noteId = 'note_' + Date.now();
+            const div = document.createElement('div');
+            div.className = 'note-item';
+            div.id = noteId;
+            div.innerHTML = `
+                <input type="text" placeholder="Enter note..." oninput="updatePreview()" id="input_${noteId}">
+                <button class="remove-note-btn" onclick="removeNote('${noteId}')">×</button>
+            `;
+            container.appendChild(div);
+            notes.push(noteId);
+        }
+
+        // Remove note
+        function removeNote(noteId) {
+            const element = document.getElementById(noteId);
+            if (element) {
+                element.remove();
+                notes = notes.filter(id => id !== noteId);
+                updatePreview();
+            }
+        }
+
+        // Calculate LTV for First Review
+        function calculateFirstReviewLTV() {
+            const loanAmountInput = document.getElementById('firstReviewLoanAmount')?.value.trim();
+            const propertyValueInput = document.getElementById('firstReviewPropertyValue')?.value.trim();
+            const ltvField = document.getElementById('firstReviewLTV');
+            
+            if (!ltvField) return;
+            
+            const extractNumber = (str) => {
+                if (!str) return null;
+                return parseFloat(str.replace(/[£,\s]/g, ''));
+            };
+            
+            const loanAmount = extractNumber(loanAmountInput);
+            const propertyValue = extractNumber(propertyValueInput);
+            
+            if (loanAmount && propertyValue && propertyValue > 0) {
+                const ltv = (loanAmount / propertyValue) * 100;
+                // If whole number, show without decimals. Otherwise show 2 decimal places
+                const formattedLTV = ltv % 1 === 0 ? ltv.toString() : ltv.toFixed(2);
+                ltvField.value = formattedLTV + '%';
+            } else {
+                ltvField.value = '';
+            }
+        }
+
+        // Set customer status
+        function setCustomerStatus(status) {
+            customerStatus = status;
+            updateCustomerStatusButtons();
+            updatePreview();
+        }
+
+        // Update customer status button states and show/hide conditional fields
+        function updateCustomerStatusButtons() {
+            const newBtn = document.getElementById('customerStatusNew');
+            const existingBtn = document.getElementById('customerStatusExisting');
+            const customerSinceContainer = document.getElementById('customerSinceContainer');
+            const liveAccountsContainer = document.getElementById('liveAccountsContainer');
+            
+            if (newBtn && existingBtn) {
+                if (customerStatus === 'new') {
+                    newBtn.classList.add('active');
+                    existingBtn.classList.remove('active');
+                    if (customerSinceContainer) customerSinceContainer.style.display = 'none';
+                    if (liveAccountsContainer) liveAccountsContainer.style.display = 'none';
+                } else if (customerStatus === 'existing') {
+                    newBtn.classList.remove('active');
+                    existingBtn.classList.add('active');
+                    if (customerSinceContainer) customerSinceContainer.style.display = 'block';
+                    if (liveAccountsContainer) liveAccountsContainer.style.display = 'block';
+                } else {
+                    newBtn.classList.remove('active');
+                    existingBtn.classList.remove('active');
+                    if (customerSinceContainer) customerSinceContainer.style.display = 'none';
+                    if (liveAccountsContainer) liveAccountsContainer.style.display = 'none';
+                }
+            }
+        }
+
+        // Set Val booked
+        function setValBooked() {
+            showValBooked = true;
+            showValInstructed = false;
+            updateValButtons();
+            updatePreview();
+        }
+
+        // Set Val instructed
+        function setValInstructed() {
+            showValBooked = false;
+            showValInstructed = true;
+            updateValButtons();
+            updatePreview();
+        }
+
+        // Update valuation button states and show/hide date field
+        function updateValButtons() {
+            const valBookedBtn = document.getElementById('valBookedBtn');
+            const valInstructedBtn = document.getElementById('valInstructedBtn');
+            const valDateContainer = document.getElementById('valDateContainer');
+            
+            if (valBookedBtn && valInstructedBtn) {
+                if (showValBooked) {
+                    valBookedBtn.classList.add('active');
+                    valInstructedBtn.classList.remove('active');
+                    if (valDateContainer) valDateContainer.style.display = 'block';
+                } else if (showValInstructed) {
+                    valBookedBtn.classList.remove('active');
+                    valInstructedBtn.classList.add('active');
+                    if (valDateContainer) valDateContainer.style.display = 'none';
+                } else {
+                    valBookedBtn.classList.remove('active');
+                    valInstructedBtn.classList.remove('active');
+                    if (valDateContainer) valDateContainer.style.display = 'none';
+                }
+            }
+        }
+
+        // Add Max LTV calculation
+        function addMaxLTV() {
+            showMaxLTV = true;
+            updatePreview();
+        }
+
+        // Add Max ICR calculation
+        function addMaxICR() {
+            showMaxICR = true;
+            updatePreview();
+        }
+
+        // Calculate LTV
+        function calculateLTV() {
+            const loanAmountInput = document.getElementById('loanAmount').value;
+            const propertyValueInput = document.getElementById('propertyValue').value;
+            const ltvField = document.getElementById('calculatedLTV');
+            
+            const extractNumber = (str) => {
+                if (!str) return null;
+                return parseFloat(str.replace(/[£,\s]/g, ''));
+            };
+            
+            const loanAmount = extractNumber(loanAmountInput);
+            const propertyValue = extractNumber(propertyValueInput);
+            
+            if (loanAmount && propertyValue && propertyValue > 0) {
+                const ltv = (loanAmount / propertyValue) * 100;
+                // If whole number, show without decimals. Otherwise show 2 decimal places
+                const formattedLTV = ltv % 1 === 0 ? ltv.toString() : ltv.toFixed(2);
+                ltvField.value = formattedLTV + '%';
+            } else {
+                ltvField.value = '';
+            }
+        }
+
+        // Format currency
+        function formatCurrency(value) {
+            if (!value) return '';
+            const numericValue = parseFloat(value.toString().replace(/[£,\s]/g, ''));
+            if (isNaN(numericValue)) return value;
+            return '£' + numericValue.toLocaleString('en-GB');
+        }
+
+        // Get calculated LTV value
+        function getCalculatedLTV() {
+            const ltvField = document.getElementById('calculatedLTV').value;
+            return ltvField ? ltvField.replace('%', '') : null;
+        }
+
+        // Field label mapping for common fields
+        const fieldLabels = {
+            'appRef': 'Application Reference',
+            'applicantName': 'Applicant',
+            'loanAmount': 'Loan Amount',
+            'propertyValue': 'Property Value',
+            'calculatedLTV': 'LTV',
+            'employmentType': 'Employment Type',
+            'income': 'Income',
+            'employer': 'Employer',
+            'position': 'Position',
+            'employmentLength': 'Employment Length',
+            'creditScore': 'Credit Score',
+            'creditAgency': 'Credit Agency',
+            'propertyAddress': 'Property Address',
+            'propertyType': 'Property Type'
+        };
+
+        // Helper function to capitalize first letter after dash
+        function capitalizeEmDashLine(text) {
+            if (!text) return text;
+            // Find the dash and capitalize the character after it (and space if present)
+            const match = text.match(/^(-\s*)(.+)$/);
+            if (match) {
+                return match[1] + match[2].charAt(0).toUpperCase() + match[2].slice(1);
+            }
+            return text;
+        }
+
+        // Helper function to ensure line ends with full stop
+        function ensureFullStop(text) {
+            if (!text) return text;
+            // Check if line already ends with punctuation (., :, ?, !) or is empty
+            const trimmed = text.trimEnd();
+            if (trimmed && !trimmed.match(/[.:?!]$/)) {
+                // Add full stop before newline if present
+                if (text.endsWith('\n')) {
+                    return trimmed + '.\n';
+                }
+                return trimmed + '.';
+            }
+            return text;
+        }
+
+        // Update preview
+        function updatePreview() {
+            const template = templates[currentTemplate];
+            
+            // Special handling for Bank Statements title with statement type
+            let title = template.title;
+            if (currentTemplate === 'bankStatements') {
+                const statementType = document.getElementById('statementType')?.value.trim();
+                if (statementType) {
+                    title = `Bank statements (${statementType})`;
+                } else {
+                    title = 'Bank statements ()';
+                }
+            }
+            
+            let output = title + ':\n';
+            
+            // Get common field values
+            const commonFieldValues = {};
+            if (template.useCommonFields) {
+                template.useCommonFields.forEach(fieldId => {
+                    const element = document.getElementById(fieldId);
+                    if (element) {
+                        let value = element.value;
+                        // Format currency fields
+                        if (fieldId === 'loanAmount' || fieldId === 'propertyValue') {
+                            value = formatCurrency(value);
+                        }
+                        if (value) {
+                            commonFieldValues[fieldId] = value;
+                        }
+                    }
+                });
+            }
+            
+            // Add common fields to output
+            let hasCommonFields = false;
+            let loanAmountFormatted = null;
+            let calculatedLTV = null;
+            
+            if (template.useCommonFields) {
+                template.useCommonFields.forEach(fieldId => {
+                    if (commonFieldValues[fieldId]) {
+                        const label = fieldLabels[fieldId] || fieldId;
+                        let value = commonFieldValues[fieldId];
+                        
+                        // Special handling for LTV - don't show as separate field, will be in "looking to borrow"
+                        if (fieldId === 'calculatedLTV') {
+                            calculatedLTV = value.replace('%', '');
+                            return; // Skip adding as separate field
+                        }
+                        
+                        // Special handling for loan amount - don't show as separate field for firstReview
+                        if (fieldId === 'loanAmount') {
+                            if (currentTemplate === 'firstReview') {
+                                return; // Skip for firstReview, handled in special section
+                            }
+                            loanAmountFormatted = value;
+                        }
+                        
+                        output += ensureFullStop(capitalizeEmDashLine(`- ${label}: ${value}\n`));
+                        hasCommonFields = true;
+                    }
+                });
+            }
+            
+            // Add "looking to borrow" line if we have loan amount and LTV (not for firstReview, handled separately)
+            if (loanAmountFormatted && calculatedLTV && currentTemplate !== 'firstReview') {
+                output += ensureFullStop(capitalizeEmDashLine(`- Looking to borrow ${loanAmountFormatted} at ${calculatedLTV}% LTV\n`));
+                hasCommonFields = true;
+            }
+            
+            if (hasCommonFields) {
+                output += '\n';
+            }
+            
+            // Template-specific fields
+            let hasTemplateFields = false;
+            
+            // Special handling for First Review template
+            if (currentTemplate === 'firstReview') {
+                const cg = document.getElementById('cg')?.value.trim();
+                const delphi = document.getElementById('delphi')?.value.trim();
+                const cashflow = document.getElementById('cashflow')?.value.trim();
+                
+                // Format: - CG[value], Delphi [value], Cashflow [value]
+                if (cg || delphi || cashflow) {
+                    let firstLine = '';
+                    const parts = [];
+                    
+                    if (cg) {
+                        parts.push(`CG ${cg}`);
+                    }
+                    if (delphi) {
+                        parts.push(`Delphi ${delphi}`);
+                    }
+                    if (cashflow) {
+                        parts.push(`Cashflow ${cashflow}`);
+                    }
+                    
+                    if (parts.length > 0) {
+                        firstLine = parts.join(', ');
+                        output += ensureFullStop(capitalizeEmDashLine(`- ${firstLine}\n`));
+                        hasTemplateFields = true;
+                    }
+                }
+                
+                // Second line: [Transaction] application for [Property] in [Location]
+                const transaction = document.getElementById('transaction')?.value.trim();
+                const property = document.getElementById('property')?.value.trim();
+                const location = document.getElementById('location')?.value.trim();
+                
+                if (transaction || property || location) {
+                    let secondLine = '';
+                    if (transaction) {
+                        secondLine += transaction;
+                    }
+                    secondLine += ' application for ';
+                    if (property) {
+                        secondLine += property;
+                    } else {
+                        secondLine += '[Property]';
+                    }
+                    secondLine += ' in ';
+                    if (location) {
+                        secondLine += location;
+                    } else {
+                        secondLine += '[Location]';
+                    }
+                    
+                    output += ensureFullStop(capitalizeEmDashLine(`- ${secondLine}\n`));
+                    hasTemplateFields = true;
+                }
+                
+                // Third line: Looking to borrow £[Loan amount] at [LTV]% LTV
+                const loanAmount = document.getElementById('firstReviewLoanAmount')?.value.trim();
+                const ltvValue = document.getElementById('firstReviewLTV')?.value.trim();
+                if (loanAmount && ltvValue) {
+                    const loanAmountFormatted = formatCurrency(loanAmount);
+                    const ltv = ltvValue.replace('%', '');
+                    output += ensureFullStop(capitalizeEmDashLine(`- Looking to borrow ${loanAmountFormatted} at ${ltv}% LTV\n`));
+                    hasTemplateFields = true;
+                }
+                
+                // Fourth line: Customer status
+                if (customerStatus === 'new') {
+                    output += ensureFullStop(capitalizeEmDashLine(`- New Paragon customer\n`));
+                    hasTemplateFields = true;
+                } else if (customerStatus === 'existing') {
+                    const customerSince = document.getElementById('customerSince')?.value.trim();
+                    const liveAccounts = document.getElementById('liveAccounts')?.value.trim();
+                    if (customerSince || liveAccounts) {
+                        let customerLine = 'Paragon customer';
+                        if (customerSince) {
+                            customerLine += ` since ${customerSince}`;
+                        }
+                        customerLine += ' with';
+                        if (liveAccounts) {
+                            customerLine += ` ${liveAccounts} live account${liveAccounts !== '1' ? 's' : ''}`;
+                        } else {
+                            customerLine += ' [number] live accounts';
+                        }
+                        output += ensureFullStop(capitalizeEmDashLine(`- ${customerLine}\n`));
+                        hasTemplateFields = true;
+                    }
+                }
+                
+                // Fifth line: Credit profile
+                const creditProfile = document.getElementById('creditProfile')?.value.trim();
+                const rnScore = document.getElementById('rnScore')?.value.trim();
+                if (creditProfile || rnScore) {
+                    let creditLine = '';
+                    if (creditProfile) {
+                        creditLine += creditProfile;
+                    } else {
+                        creditLine += '[Profile]';
+                    }
+                    creditLine += ' credit profile with ';
+                    if (rnScore) {
+                        creditLine += `${rnScore} RN`;
+                    } else {
+                        creditLine += '[RN score] RN';
+                    }
+                    creditLine += ', ';
+                    // No full stop, just comma as requested
+                    output += capitalizeEmDashLine(`- ${creditLine}\n`);
+                    hasTemplateFields = true;
+                }
+                
+                // Sixth line: Valuation status
+                if (showValBooked) {
+                    const valDate = document.getElementById('valDate')?.value.trim();
+                    if (valDate) {
+                        output += ensureFullStop(capitalizeEmDashLine(`- Valuation booked for ${valDate}\n`));
+                    } else {
+                        output += ensureFullStop(capitalizeEmDashLine(`- Valuation booked for \n`));
+                    }
+                    hasTemplateFields = true;
+                } else if (showValInstructed) {
+                    output += ensureFullStop(capitalizeEmDashLine(`- Valuation instructed but no date booked yet\n`));
+                    hasTemplateFields = true;
+                }
+                
+                if (hasTemplateFields) {
+                    output += '\n';
+                }
+            }
+            // Special handling for Property Schedule template
+            else if (currentTemplate === 'propertySchedule') {
+                const experience = document.getElementById('experience')?.value.trim();
+                const numberOfProperties = document.getElementById('numberOfProperties')?.value.trim();
+                const propertyLocation = document.getElementById('propertyLocation')?.value.trim();
+                
+                // First line: [Experience] landlord with [number of properties] rental properties in [Location]
+                if (experience || numberOfProperties || propertyLocation) {
+                    let propertyLine = '';
+                    if (experience) {
+                        propertyLine += experience;
+                    } else {
+                        propertyLine += '[Experience]';
+                    }
+                    propertyLine += ' landlord with ';
+                    if (numberOfProperties) {
+                        propertyLine += numberOfProperties;
+                    } else {
+                        propertyLine += '[number of properties]';
+                    }
+                    propertyLine += ' rental properties in ';
+                    if (propertyLocation) {
+                        propertyLine += propertyLocation;
+                    } else {
+                        propertyLine += '[Location]';
+                    }
+                    output += ensureFullStop(capitalizeEmDashLine(`- ${propertyLine}\n`));
+                    hasTemplateFields = true;
+                }
+                
+                if (hasTemplateFields) {
+                    output += '\n';
+                }
+            }
+            // Special handling for Valuation template
+            else if (currentTemplate === 'property') {
+                const valuation = document.getElementById('valuation')?.value.trim();
+                const rentalIncome = document.getElementById('rentalIncome')?.value.trim();
+                const rentalDemand = document.getElementById('rentalDemand')?.value.trim();
+                const suitability = document.getElementById('suitability')?.value.trim();
+                
+                // First line: valuation = £[valuation]/£[rental income]pcm
+                if (valuation || rentalIncome) {
+                    const valuationFormatted = valuation ? formatCurrency(valuation) : '';
+                    const rentalIncomeFormatted = rentalIncome ? formatCurrency(rentalIncome) : '';
+                    if (valuationFormatted && rentalIncomeFormatted) {
+                        output += capitalizeEmDashLine(`- valuation = ${valuationFormatted}/${rentalIncomeFormatted}pcm\n`);
+                        hasTemplateFields = true;
+                    } else if (valuationFormatted) {
+                        output += capitalizeEmDashLine(`- valuation = ${valuationFormatted}\n`);
+                        hasTemplateFields = true;
+                    } else if (rentalIncomeFormatted) {
+                        output += capitalizeEmDashLine(`- rental income = ${rentalIncomeFormatted}pcm\n`);
+                        hasTemplateFields = true;
+                    }
+                }
+                
+                // Second line: rental demand and suitability
+                if (rentalDemand || suitability) {
+                    if (rentalDemand && suitability) {
+                        if (rentalDemand === suitability) {
+                            // Same value - show once
+                            output += capitalizeEmDashLine(`- ${rentalDemand} rental demand and suitability\n`);
+                        } else {
+                            // Different values - show both
+                            output += capitalizeEmDashLine(`- ${rentalDemand} rental demand and ${suitability} suitability\n`);
+                        }
+                    } else if (rentalDemand) {
+                        output += capitalizeEmDashLine(`- ${rentalDemand} rental demand\n`);
+                    } else if (suitability) {
+                        output += capitalizeEmDashLine(`- ${suitability} suitability\n`);
+                    }
+                    hasTemplateFields = true;
+                }
+                
+                // Max LTV calculation
+                if (showMaxLTV && valuation) {
+                    const valuationNum = parseFloat(valuation.replace(/[£,\s]/g, ''));
+                    if (!isNaN(valuationNum)) {
+                        const maxLTVAmount = valuationNum * 0.75;
+                        const maxLTVFormatted = formatCurrency(maxLTVAmount.toString());
+                        output += capitalizeEmDashLine(`- Maximum loan @ 75% LTV = ${maxLTVFormatted}\n`);
+                        hasTemplateFields = true;
+                    }
+                }
+                
+                // Max ICR template
+                if (showMaxICR) {
+                    output += capitalizeEmDashLine(`- Maximum loan @  % = £\n`);
+                    hasTemplateFields = true;
+                }
+                
+                if (hasTemplateFields) {
+                    output += '\n';
+                }
+            } else {
+                // Standard field handling for other templates
+                template.fields.forEach(field => {
+                    // Skip statementType for bankStatements as it's used in the title
+                    if (currentTemplate === 'bankStatements' && field.id === 'statementType') {
+                        return;
+                    }
+                    const value = document.getElementById(field.id)?.value.trim();
+                    if (value) {
+                        output += ensureFullStop(capitalizeEmDashLine(`- ${field.label}: ${value}\n`));
+                        hasTemplateFields = true;
+                    }
+                });
+                
+                if (hasTemplateFields) {
+                    output += '\n';
+                }
+            }
+            
+            // Assessment notes
+            const noteInputs = document.querySelectorAll('#notesContainer input[type="text"]');
+            const validNotes = Array.from(noteInputs)
+                .map(input => input.value.trim())
+                .filter(note => note.length > 0);
+            
+            if (validNotes.length > 0) {
+                validNotes.forEach(note => {
+                    // Don't add full stops for valuation tab
+                    if (currentTemplate === 'property') {
+                        output += capitalizeEmDashLine(`- ${note}\n`);
+                    } else {
+                        output += ensureFullStop(capitalizeEmDashLine(`- ${note}\n`));
+                    }
+                });
+            }
+            
+            // If nothing filled, show placeholder
+            if (output === title + ':\n\n') {
+                output += '- [Your notes will appear here]';
+            }
+            
+            document.getElementById('previewArea').value = output;
+            
+            // Update character counter
+            updateCharacterCounter();
+        }
+
+        // Update character counter
+        function updateCharacterCounter() {
+            const previewArea = document.getElementById('previewArea');
+            const charCount = previewArea.value.length;
+            document.getElementById('characterCounter').textContent = charCount + ' character' + (charCount !== 1 ? 's' : '');
+        }
+
+        // Save application data to localStorage
+        function saveToLocalStorage() {
+            const data = {
+                loanAmount: document.getElementById('loanAmount').value,
+                propertyValue: document.getElementById('propertyValue').value,
+                position: document.getElementById('position').value,
+                employmentLength: document.getElementById('employmentLength').value,
+                creditScore: document.getElementById('creditScore').value
+            };
+            localStorage.setItem('mortgageAppData', JSON.stringify(data));
+        }
+
+        function saveApplicationData() {
+            saveToLocalStorage();
+            showNotification('Application data saved!');
+        }
+
+        // Load application data from localStorage
+        function loadApplicationData() {
+            const saved = localStorage.getItem('mortgageAppData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                document.getElementById('loanAmount').value = data.loanAmount || '';
+                document.getElementById('propertyValue').value = data.propertyValue || '';
+                document.getElementById('position').value = data.position || '';
+                document.getElementById('employmentLength').value = data.employmentLength || '';
+                document.getElementById('creditScore').value = data.creditScore || '';
+                calculateLTV();
+            }
+        }
+
+        // Copy to clipboard
+        function copyToClipboard() {
+            const preview = document.getElementById('previewArea').value;
+            
+            navigator.clipboard.writeText(preview).then(() => {
+                showNotification('Copied to clipboard!');
+            }).catch(err => {
+                const textarea = document.createElement('textarea');
+                textarea.value = preview;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showNotification('Copied to clipboard!');
+            });
+        }
+
+        // Clear notes only
+        function clearNotes() {
+            document.getElementById('notesContainer').innerHTML = '';
+            notes = [];
+            addNote();
+            
+            // Clear template fields
+            templates[currentTemplate].fields.forEach(field => {
+                const input = document.getElementById(field.id);
+                if (input) input.value = '';
+            });
+            
+            updatePreview();
+        }
+
+        // Clear all
+        function clearAll() {
+            if (confirm('Clear all fields including application details?')) {
+                document.getElementById('loanAmount').value = '';
+                document.getElementById('propertyValue').value = '';
+                document.getElementById('calculatedLTV').value = '';
+                document.getElementById('position').value = '';
+                document.getElementById('employmentLength').value = '';
+                document.getElementById('creditScore').value = '';
+                
+                clearNotes();
+                localStorage.removeItem('mortgageAppData');
+            }
+        }
+
+        // Show notification
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
